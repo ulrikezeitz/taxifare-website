@@ -86,15 +86,25 @@ passenger_count = st.slider("👥 Anzahl Passagiere", 1, 6, 1)
 
 # --- API CALL ---
 if st.button("💸 Vorhersage berechnen"):
-    progress = st.progress(0)
-    status = st.empty()
-    status.write("Starte Anfrage...")
+    with st.spinner("Berechne Vorhersage... bitte warten ⏳"):
+        url = "https://taxifare.lewagon.ai/predict"
 
-    for i in range(30):
-        progress.progress(i / 30)
-        time.sleep(0.05)
-    progress.progress(1.0)          # Balken auf 100%
-    status.write("Anfrage beendet") # Text aktualisieren
+        params = {
+            "pickup_datetime": ride_datetime.strftime("%Y-%m-%d %H:%M:%S"),
+            "pickup_longitude": pickup_lon,
+            "pickup_latitude": pickup_lat,
+            "dropoff_longitude": dropoff_lon,
+            "dropoff_latitude": dropoff_lat,
+            "passenger_count": passenger_count
+        }
+
+        response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        prediction = response.json().get("fare", "Keine Vorhersage erhalten")
+        st.success(f"💰 Geschätzter Fahrpreis: **${prediction:.2f}**")
+    else:
+        st.error("❌ Fehler beim Abrufen der Vorhersage")
 
     url = "https://taxifareapi-1091606282523.europe-west1.run.app/predict"
 
